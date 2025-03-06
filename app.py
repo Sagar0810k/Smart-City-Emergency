@@ -9,7 +9,6 @@ app.secret_key = 'Sagar321'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Singh%40123@localhost/smart_city'
 db = SQLAlchemy(app)
 
-gmaps = googlemaps.Client(key="AIzaSyDjFiqysEjmMX_Hgl0dhpOF-Htixgg9Gqk")
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
