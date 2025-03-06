@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart City - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch" class="theme-switch">
+        <label for="theme-switch" class="theme-switch-label">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+            <span class="ball"></span>
+        </label>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <img src="/placeholder.svg?height=80&width=80" alt="Smart City Logo" class="logo">
+            <h1>Smart City Emergency Response</h1>
+            <p class="subtitle">Keeping our communities safe together</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="tab-btn active" data-target="login-form">Login</button>
+            <button class="tab-btn" data-target="register-form">Register</button>
+        </div>
+
+        <div class="auth-forms">
+            <form id="login-form" action="/login" method="POST" class="active">
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="login-username" name="username" placeholder="Enter your username" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Login <i class="fas fa-sign-in-alt"></i></button>
+            </form>
+
+            <form id="register-form" action="/register" method="POST">
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="register-username" name="username" placeholder="Choose a username" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="register-password" name="password" placeholder="Choose a password" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-city"></i>
+                        <select id="city" name="city" required>
+                            <option value="">Select your city</option>
+                            <option value="New York">New York</option>
+                            <option value="Los Angeles">Los Angeles</option>
+                            <option value="Chicago">Chicago</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Register <i class="fas fa-user-plus"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Smart City Emergency Response System</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='auth.js') }}" defer></script>
+</body>
+</html>
+

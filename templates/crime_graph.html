@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart City - Crime Statistics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch" class="theme-switch">
+        <label for="theme-switch" class="theme-switch-label">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+            <span class="ball"></span>
+        </label>
+    </div>
+
+    <header class="dashboard-header">
+        <div class="header-content">
+            <img src="/placeholder.svg?height=50&width=50" alt="Smart City Logo" class="logo">
+            <h1>Crime Statistics - <span id="city-name">{{ city }}</span></h1>
+        </div>
+        <div class="user-actions">
+            <button class="btn btn-outline" onclick="location.href='/dashboard'">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="card full-width">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Monthly Crime Comparison</h2>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="crimeChart"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: rgba(54, 162, 235, 0.7);"></span>
+                        <span>Previous Month: {{ previous_month }} incidents</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: rgba(255, 99, 132, 0.7);"></span>
+                        <span>Current Month: {{ current_month }} incidents</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+<br><br>
+        <section class="card full-width">
+            <div class="card-header">
+                <h2><i class="fas fa-info-circle"></i> Crime Insights</h2>
+            </div>
+            <div class="card-body">
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Change Rate</h3>
+                            <p class="insight-value">
+                                {% if previous_month != 0 %}
+                                    {{ ((current_month - previous_month) / previous_month * 100) | round | int }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                            <p class="insight-description">
+                                {% if current_month > previous_month %}
+                                    <span class="text-danger">Increase from last month</span>
+                                {% else %}
+                                    <span class="text-success">Decrease from last month</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Citizen Sentiment</h3>
+                            <p class="insight-value">
+                                {% if current_month < previous_month %}
+                                    <span class="text-success">Happy 😊</span>
+                                {% elif current_month > previous_month %}
+                                    <span class="text-danger">Unhappy 😞</span>
+                                {% else %}
+                                    <span class="text-warning">Neutral 😐</span>
+                                {% endif %}
+                            </p>
+                            <p class="insight-description">
+                                {% if current_month < previous_month %}
+                                    <span class="text-success">Fewer incidents, citizens feel safer!</span>
+                                {% elif current_month > previous_month %}
+                                    <span class="text-danger">More incidents, citizens feel more stressed!</span>
+                                {% else %}
+                                    <span class="text-warning">No significant change in incidents, sentiment remains neutral.</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Current Month Response Rate</h3>
+                            <p class="insight-value">{{ current_month_response_rate | round(2) }}%</p>
+                            <p class="insight-description">Percentage of incidents that received emergency response</p>
+                        </div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h3>Avg. Time to Mark as Done</h3>
+                            <p class="insight-value">
+                                {% if avg_time_to_mark_done > 0 %}
+                                    {{ avg_time_to_mark_done | round(2) }} min
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                            <p class="insight-description">
+                                The average time taken to mark incidents as resolved ("Done").
+                            </p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Smart City Emergency Response System</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Theme toggle functionality
+        const themeSwitch = document.getElementById('theme-switch');
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark');
+            themeSwitch.checked = true;
+        } else if (savedTheme === 'light') {
+            document.body.classList.remove('dark');
+            themeSwitch.checked = false;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.classList.add('dark');
+            themeSwitch.checked = true;
+        }
+        
+        themeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+            
+            // Redraw chart with new theme colors
+            updateChartColors();
+        });
+        
+        // Chart.js configuration
+        let crimeChart;
+        
+        function initChart() {
+            const ctx = document.getElementById('crimeChart').getContext('2d');
+            crimeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Previous Month', 'Current Month'],
+                    datasets: [{
+                        label: 'Number of Incidents',
+                        data: [{{ previous_month }}, {{ current_month }}],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 99, 132, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize chart when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initChart);
+        
+        function updateChartColors() {
+            if (crimeChart) {
+                crimeChart.destroy();
+            }
+            initChart();
+        }
+        
+
+    </script>
+</body>
+</html>
+
