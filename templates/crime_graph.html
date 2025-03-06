@@ -6,8 +6,10 @@
     <title>Smart City - Crime Statistics</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 </head>
 <body>
+    <body style="background-image: url('{{ url_for('static', filename='image 5.jpeg') }}'); background-size: cover; background-repeat: no-repeat; background-position: center;">
     <div class="theme-toggle">
         <input type="checkbox" id="theme-switch" class="theme-switch">
         <label for="theme-switch" class="theme-switch-label">
@@ -19,7 +21,7 @@
 
     <header class="dashboard-header">
         <div class="header-content">
-            <img src="/placeholder.svg?height=50&width=50" alt="Smart City Logo" class="logo">
+            <img src="{{ url_for('static', filename='image 4.png') }}" alt="random image" height="90px" width="100px">
             <h1>Crime Statistics - <span id="city-name">{{ city }}</span></h1>
         </div>
         <div class="user-actions">

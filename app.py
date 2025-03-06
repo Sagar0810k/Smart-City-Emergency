@@ -1,16 +1,31 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-import googlemaps
-from datetime import datetime  # Only import the `datetime` class from the module
+from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import google.generativeai as genai
+from dotenv import load_dotenv
+import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
+# Load environment variables
+load_dotenv()
+
+# Flask app configuration
 app = Flask(__name__)
-app.secret_key = 'Sagar321'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Singh%40123@localhost/smart_city'
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "Singh321")  # Use .env for security
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "mysql+pymysql://root:Singh%40123@localhost/smart_city")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-gmaps = googlemaps.Client(key="AIzaSyDjFiqysEjmMX_Hgl0dhpOF-Htixgg9Gqk")
+# Configure Gemini API
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY is not set in the environment variables.")
+    
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-1.5-flash")  # Updated model name
 
+# ------------------ DATABASE MODELS ------------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -23,16 +38,17 @@ class Incident(db.Model):
     summary = db.Column(db.Text, nullable=False)
     city = db.Column(db.String(100), nullable=False)
     covered = db.Column(db.Boolean, default=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)  # Corrected here
-    done_time = db.Column(db.DateTime, nullable=True)  # Add done_time as nullable
-
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    done_time = db.Column(db.DateTime, nullable=True)
 
 class CriminalReport(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     criminal_name = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     city = db.Column(db.String(100), nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)  # Corrected here
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+
+# ------------------ ROUTES ------------------
 
 @app.route('/')
 def home():
@@ -61,11 +77,9 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('home'))
-
     city = session['city']
-    incidents = Incident.query.filter_by(city=city).all()  # Make sure to include summary and other necessary fields
+    incidents = Incident.query.filter_by(city=city).all()
     return render_template('dashboard.html', incidents=incidents, city=city)
-
 
 @app.route('/report_incident', methods=['POST'])
 def report_incident():
@@ -82,11 +96,10 @@ def mark_covered(id):
     incident = Incident.query.get(id)
     if incident:
         incident.covered = True
-        incident.done_time = datetime.utcnow()  # Set done_time when marking as covered
+        incident.done_time = datetime.utcnow()
         db.session.commit()
         return jsonify({'success': True})
     return jsonify({'error': 'Incident not found'})
-
 
 @app.route('/report_criminal', methods=['POST'])
 def report_criminal():
@@ -104,56 +117,21 @@ def crime_graph():
         return redirect(url_for('home'))
 
     city = session['city']
-
-    # Get the incidents for the current month (from the 1st day of the current month)
     current_month_incidents = Incident.query.filter_by(city=city).filter(Incident.date >= datetime.utcnow().replace(day=1)).all()
-
-    # Get the incidents for the previous month
     previous_month_incidents = Incident.query.filter_by(city=city).filter(Incident.date < datetime.utcnow().replace(day=1)).all()
 
-    # Calculate total incidents for current and previous months
     current_month_count = len(current_month_incidents)
     previous_month_count = len(previous_month_incidents)
-
-    # Calculate covered incidents for current and previous months
     current_month_covered_count = len([incident for incident in current_month_incidents if incident.covered])
     previous_month_covered_count = len([incident for incident in previous_month_incidents if incident.covered])
 
-    # Calculate the response rate (covered incidents / total incidents) for both months
-    if current_month_count > 0:
-        current_month_response_rate = (current_month_covered_count / current_month_count) * 100
-    else:
-        current_month_response_rate = 0
+    current_month_response_rate = (current_month_covered_count / current_month_count) * 100 if current_month_count > 0 else 0
+    previous_month_response_rate = (previous_month_covered_count / previous_month_count) * 100 if previous_month_count > 0 else 0
+    change_rate = ((current_month_count - previous_month_count) / previous_month_count) * 100 if previous_month_count > 0 else 'N/A'
 
-    if previous_month_count > 0:
-        previous_month_response_rate = (previous_month_covered_count / previous_month_count) * 100
-    else:
-        previous_month_response_rate = 0
+    total_time_taken = sum((incident.done_time - incident.date).total_seconds() for incident in current_month_incidents + previous_month_incidents if incident.done_time)
+    avg_time_to_mark_done = (total_time_taken / len(current_month_incidents + previous_month_incidents)) / 60 if len(current_month_incidents + previous_month_incidents) > 0 else 0
 
-    # Calculate the change rate for incidents between the two months
-    if previous_month_count > 0:
-        change_rate = ((current_month_count - previous_month_count) / previous_month_count) * 100
-    else:
-        change_rate = 'N/A'  # No previous data to compare with
-
-    # Calculate the average time to mark incidents as "Done" (in minutes)
-    total_time_taken = 0
-    total_incidents = 0
-
-    # Calculate total time taken for all incidents that have been marked as "Done"
-    for incident in current_month_incidents + previous_month_incidents:
-        if incident.done_time:  # If the incident has been marked as "Done"
-            time_taken = incident.done_time - incident.date  # Calculate time from incident date to done time
-            total_time_taken += time_taken.total_seconds()
-            total_incidents += 1
-
-    # Calculate the average time taken to mark incidents as "Done" (in minutes)
-    if total_incidents > 0:
-        avg_time_to_mark_done = total_time_taken / total_incidents / 60  # Convert seconds to minutes
-    else:
-        avg_time_to_mark_done = 0
-
-    # Render the crime graph page with the updated data
     return render_template(
         'crime_graph.html',
         current_month=current_month_count,
@@ -165,13 +143,49 @@ def crime_graph():
         city=city
     )
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
 
+# ------------------ BACKGROUND TASK: FETCH INCIDENTS ------------------
+
+def fetch_incidents():
+    print("Fetching new incidents using Gemini AI...")
+    query = "Find the latest reported incidents in major cities in India within the last hour."
+
+    try:
+        response = model.generate_content([query])  # Use list for query
+        if response and hasattr(response, 'text'):
+            new_incidents = response.text.strip().split("\n")
+
+            with app.app_context():
+                for incident in new_incidents:
+                    parts = incident.split("-")
+                    if len(parts) >= 2:
+                        location, summary = parts[0].strip(), parts[1].strip()
+                        existing_incident = Incident.query.filter_by(location=location, summary=summary).first()
+
+                        if not existing_incident:
+                            new_incident = Incident(location=location, summary=summary, city="Unknown")
+                            db.session.add(new_incident)
+
+                db.session.commit()
+                print("Incidents updated successfully!")
+
+    except Exception as e:
+        print(f"Error fetching incidents: {e}")
+
+# Schedule incident fetching every 30 minutes
+scheduler = BackgroundScheduler()
+scheduler.add_job(fetch_incidents, 'interval', minutes=30)
+scheduler.start()
+
+with app.app_context():
+    fetch_incidents()
+
+# ------------------ RUN FLASK APP ------------------
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Create the database tables
-    app.run(debug=True)
+        db.create_all()
+    app.run(host='0.0.0.0', port=5000, debug=True)

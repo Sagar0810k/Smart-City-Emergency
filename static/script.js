@@ -130,5 +130,109 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
   }
-  
+  document.addEventListener("DOMContentLoaded", function () {
+    // Theme Toggle
+    const themeSwitch = document.getElementById("theme-switch");
+    themeSwitch.addEventListener("change", function () {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    });
+
+    // Load theme preference
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark-mode");
+        themeSwitch.checked = true;
+    }
+
+    // Handle Incident Report Submission
+    document.getElementById("report-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const location = document.getElementById("incident-location").value.trim();
+        const summary = document.getElementById("incident-summary").value.trim();
+
+        if (!location || !summary) {
+            showNotification("Please fill in all fields!", "error");
+            return;
+        }
+
+        fetch("/report_incident", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ location, summary }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification("Incident reported successfully!", "success");
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification("Error reporting incident. Try again!", "error");
+            }
+        })
+        .catch(() => showNotification("Server error. Please try later!", "error"));
+    });
+
+    // Handle Criminal Report Submission
+    document.getElementById("criminal-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const name = document.getElementById("criminal-name").value.trim();
+        const location = document.getElementById("criminal-location").value.trim();
+
+        if (!name || !location) {
+            showNotification("Please fill in all fields!", "error");
+            return;
+        }
+
+        fetch("/report_criminal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, location }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification("Criminal activity reported!", "success");
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification("Error reporting criminal activity. Try again!", "error");
+            }
+        })
+        .catch(() => showNotification("Server error. Please try later!", "error"));
+    });
+
+    // Mark Incident as Covered
+    window.markAsCovered = function (incidentId) {
+        fetch(`/mark_as_covered/${incidentId}`, { method: "POST" })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification("Incident marked as covered!", "success");
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification("Failed to mark as covered!", "error");
+            }
+        })
+        .catch(() => showNotification("Server error. Please try later!", "error"));
+    };
+
+    // Notification System
+    function showNotification(message, type) {
+        const notification = document.getElementById("notification");
+        const messageElement = document.getElementById("notification-message");
+
+        notification.className = `notification ${type}`;
+        messageElement.textContent = message;
+        notification.style.display = "flex";
+
+        setTimeout(() => {
+            notification.style.display = "none";
+        }, 3000);
+    }
+
+    // Close Notification
+    document.getElementById("notification-close").addEventListener("click", function () {
+        document.getElementById("notification").style.display = "none";
+    });
+});
+
   
