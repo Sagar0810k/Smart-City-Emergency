@@ -794,5 +794,93 @@ button.disabled {
       grid-template-columns: 1fr;
     }
   }
+  .report-forms-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    grid-column: 1 / -1;
+    margin-bottom: 1.5rem;
+  }
   
+  /* Incident Card Styling */
+  .incident-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background-color: var(--card-bg);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+  }
   
+  .incident-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .incident-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .incident-location {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-color);
+  }
+  
+  .incident-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .status-covered {
+    color: var(--success-color);
+  }
+  
+  .status-not-covered {
+    color: var(--warning-color);
+  }
+  
+  .incident-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  .incident-actions button {
+    flex: 1;
+    margin-top: 0;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .report-forms-row {
+      grid-template-columns: 1fr;
+    }
+    
+    .incident-actions {
+      flex-direction: column;
+    }
+  }
+  
+  /* Make sure the incidents container has proper grid layout */
+  .incidents-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  
+  /* Full width for the incidents list section */
+  .full-width {
+    grid-column: 1 / -1;
+  }
