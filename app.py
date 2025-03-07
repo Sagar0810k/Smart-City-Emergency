@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
 
-# Load environment variables
+
 load_dotenv()
 
 # Flask app configuration

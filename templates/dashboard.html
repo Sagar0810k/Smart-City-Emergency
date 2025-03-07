@@ -6,10 +6,12 @@
     <title>Smart City - Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body style="background-image: url('{{ url_for('static', filename='image2.jpeg') }}'); background-size: cover; background-repeat: no-repeat; background-position: center;">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" >
+
     
+</head>
+<body>
+    <body style="background-image: url('{{ url_for('static', filename='image2.jpeg') }}'); background-size: cover; background-repeat: no-repeat; background-position: center;">
     <div class="theme-toggle">
         <input type="checkbox" id="theme-switch" class="theme-switch">
         <label for="theme-switch" class="theme-switch-label">
@@ -18,22 +20,24 @@
             <span class="ball"></span>
         </label>
     </div>
-    
+
     <header class="dashboard-header">
         <div class="header-content">
             <img src="{{ url_for('static', filename='image 4.png') }}" alt="Logo" height="90px" width="100px">
             <h1>Smart City Dashboard - <span id="city-name">{{ city }}</span></h1>
         </div>
         <div class="user-actions">
-            <button class="btn btn-outline" onclick="location.href='/crime_graph'"><i class="fas fa-chart-bar"></i> Crime Statistics</button>
-            <button class="btn btn-danger" onclick="location.href='/logout'"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button class="btn btn-outline" onclick="location.href='/crime_graph'">
+                <i class="fas fa-chart-bar"></i> Crime Statistics
+            </button>
+            <button class="btn btn-danger" onclick="location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
         </div>
     </header>
 
     <main class="dashboard-container">
         <div class="dashboard-grid">
-            
-            <!-- Report Incident -->
             <section class="card report-incident">
                 <div class="card-header">
                     <h2><i class="fas fa-exclamation-triangle"></i> Report an Incident</h2>
@@ -51,12 +55,13 @@
                             <label for="incident-summary">Summary</label>
                             <textarea id="incident-summary" placeholder="Describe the incident in detail" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Report
+                        </button>
                     </form>
                 </div>
             </section>
-            
-            <!-- Report Criminal -->
+
             <section class="card report-criminal">
                 <div class="card-header">
                     <h2><i class="fas fa-user-secret"></i> Report Criminal Activity</h2>
@@ -77,12 +82,13 @@
                                 <input type="text" id="criminal-location" placeholder="Location" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Report
+                        </button>
                     </form>
                 </div>
             </section>
-            
-            <!-- Incidents List -->
+
             <section class="card incidents-list">
                 <div class="card-header">
                     <h2><i class="fas fa-list-alt"></i> Incidents in Your City</h2>
@@ -90,7 +96,7 @@
                 <div class="incidents-container">
                     {% for incident in incidents %}
                         <div class="incident-card">
-                            <p class="incident-location"><strong>Location:</strong> {{ incident.location }}</p>
+                            <p class="incident-location">{{ incident.location }}</p>
                             <p class="incident-status">
                                 {% if incident.covered %}
                                     <span class="status-covered">🟢 Covered</span>
@@ -99,50 +105,63 @@
                                 {% endif %}
                             </p>
                             
-                            <button onclick="markAsCovered({{ incident.id }})" class="btn btn-sm {{ 'btn-success disabled' if incident.covered else 'btn-outline' }}">
-                                <i class="fas fa-check"></i> Mark as Covered
-                            </button>
+                        </div>
+                    
+                </div>
+                
+                <button onclick="markAsCovered({{ incident.id }})" class="btn btn-sm {{ 'btn-success disabled' if incident.covered else 'btn-outline' }}">
+                                        <i class="fas fa-check"></i> Mark as Covered
+                                    </button>
             
-                            <!-- Summary Button -->
-                            <button class="btn btn-info" data-toggle="modal" data-target="#summaryModal{{ incident.id }}">
-                                View Summary
-                            </button>
-                            
-                            <!-- Modal for Incident Summary -->
-                            <div class="modal fade" id="summaryModal{{ incident.id }}" tabindex="-1" role="dialog" aria-labelledby="summaryModalLabel{{ incident.id }}" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="summaryModalLabel{{ incident.id }}">Incident Summary</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p><strong>Summary:</strong> {{ incident.summary }}</p>
-                                            <p><strong>Location:</strong> {{ incident.location }}</p>
-                                            <p><strong>Date Reported:</strong> {{ incident.date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                                            <p><strong>Status:</strong> {% if incident.covered %} Covered {% else %} Not Covered {% endif %}</p>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <!-- Summary Button -->
+                                    <button class="btn btn-info" data-toggle="modal" data-target="#summaryModal{{ incident.id }}">
+                                        View Summary
+                                    </button>
+                                    
+                                    <!-- Modal for Incident Summary -->
+                                    <div class="modal fade" id="summaryModal{{ incident.id }}" tabindex="-1" role="dialog" aria-labelledby="summaryModalLabel{{ incident.id }}" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="summaryModalLabel{{ incident.id }}">Incident Summary</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Summary:</strong> {{ incident.summary }}</p>
+                                                    <p><strong>Location:</strong> {{ incident.location }}</p>
+                                                    <p><strong>Date Reported:</strong> {{ incident.date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                                    <p><strong>Status:</strong> {% if incident.covered %} Covered {% else %} Not Covered {% endif %}</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
             </section>
+            
         </div>
     </main>
 
     <footer>
         <p>&copy; 2025 Smart City Emergency Response System</p>
     </footer>
-    
+
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+        <button id="notification-close"><i class="fas fa-times"></i></button>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </body>
 </html>

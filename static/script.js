@@ -1,238 +1,133 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Theme toggle functionality
-    const themeSwitch = document.getElementById("theme-switch")
-  
-    // Check for saved theme preference or use preferred color scheme
-    const savedTheme = localStorage.getItem("theme")
-    if (savedTheme === "dark") {
+  // Theme toggle functionality
+  const themeSwitch = document.getElementById("theme-switch")
+
+  // Check for saved theme preference or use preferred color scheme
+  const savedTheme = localStorage.getItem("theme")
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark")
+    themeSwitch.checked = true
+  } else if (savedTheme === "light") {
+    document.body.classList.remove("dark")
+    themeSwitch.checked = false
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    document.body.classList.add("dark")
+    themeSwitch.checked = true
+  }
+
+  themeSwitch.addEventListener("change", function () {
+    if (this.checked) {
       document.body.classList.add("dark")
-      themeSwitch.checked = true
-    } else if (savedTheme === "light") {
+      localStorage.setItem("theme", "dark")
+    } else {
       document.body.classList.remove("dark")
-      themeSwitch.checked = false
-    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      document.body.classList.add("dark")
-      themeSwitch.checked = true
-    }
-  
-    themeSwitch.addEventListener("change", function () {
-      if (this.checked) {
-        document.body.classList.add("dark")
-        localStorage.setItem("theme", "dark")
-      } else {
-        document.body.classList.remove("dark")
-        localStorage.setItem("theme", "light")
-      }
-    })
-  
-    // Notification system
-    const notification = document.getElementById("notification")
-    const notificationMessage = document.getElementById("notification-message")
-    const notificationClose = document.getElementById("notification-close")
-  
-    function showNotification(message, type = "info") {
-      notificationMessage.textContent = message
-      notification.className = `notification show ${type}`
-  
-      // Auto hide after 5 seconds
-      setTimeout(() => {
-        hideNotification()
-      }, 5000)
-    }
-  
-    function hideNotification() {
-      notification.classList.remove("show")
-    }
-  
-    notificationClose.addEventListener("click", hideNotification)
-  
-    // Report incident form
-    const reportForm = document.getElementById("report-form")
-    if (reportForm) {
-      reportForm.addEventListener("submit", (e) => {
-        e.preventDefault()
-        const location = document.getElementById("incident-location").value
-        const summary = document.getElementById("incident-summary").value
-  
-        fetch("/report_incident", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ location, summary }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            showNotification(data.message, "success")
-            reportForm.reset()
-          })
-          .catch((error) => {
-            showNotification("Error reporting incident. Please try again.", "error")
-            console.error("Error:", error)
-          })
-      })
-    }
-  
-    // Report criminal form
-    const criminalForm = document.getElementById("criminal-form")
-    if (criminalForm) {
-      criminalForm.addEventListener("submit", (e) => {
-        e.preventDefault()
-        const criminalName = document.getElementById("criminal-name").value
-        const location = document.getElementById("criminal-location").value
-  
-        fetch("/report_criminal", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ criminal_name: criminalName, location: location }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            showNotification(data.message, "success")
-            criminalForm.reset()
-          })
-          .catch((error) => {
-            showNotification("Error reporting criminal activity. Please try again.", "error")
-            console.error("Error:", error)
-          })
-      })
+      localStorage.setItem("theme", "light")
     }
   })
-  
-  // Mark incident as covered
-  function markAsCovered(incidentId) {
-    fetch(`/mark_covered/${incidentId}`, {
-      method: "GET",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          const notification = document.getElementById("notification")
-          const notificationMessage = document.getElementById("notification-message")
-  
-          notificationMessage.textContent = "Incident marked as covered!"
-          notification.className = "notification show success"
-  
-          // Auto hide after 3 seconds
-          setTimeout(() => {
-            notification.classList.remove("show")
-            location.reload() // Reload the page to reflect changes
-          }, 3000)
-        } else {
-          const notification = document.getElementById("notification")
-          const notificationMessage = document.getElementById("notification-message")
-  
-          notificationMessage.textContent = "Error marking incident as covered"
-          notification.className = "notification show error"
-  
-          // Auto hide after 3 seconds
-          setTimeout(() => {
-            notification.classList.remove("show")
-          }, 3000)
-        }
-      })
+
+  // Notification system
+  const notification = document.getElementById("notification")
+  const notificationMessage = document.getElementById("notification-message")
+  const notificationClose = document.getElementById("notification-close")
+
+  function showNotification(message, type = "info") {
+    notificationMessage.textContent = message
+    notification.className = `notification show ${type}`
+
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+      hideNotification()
+    }, 5000)
   }
-  document.addEventListener("DOMContentLoaded", function () {
-    // Theme Toggle
-    const themeSwitch = document.getElementById("theme-switch");
-    themeSwitch.addEventListener("change", function () {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
-    });
 
-    // Load theme preference
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
-        themeSwitch.checked = true;
-    }
+  function hideNotification() {
+    notification.classList.remove("show")
+  }
 
-    // Handle Incident Report Submission
-    document.getElementById("report-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const location = document.getElementById("incident-location").value.trim();
-        const summary = document.getElementById("incident-summary").value.trim();
+  notificationClose.addEventListener("click", hideNotification)
 
-        if (!location || !summary) {
-            showNotification("Please fill in all fields!", "error");
-            return;
-        }
+  // Report incident form
+  const reportForm = document.getElementById("report-form")
+  if (reportForm) {
+    reportForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const location = document.getElementById("incident-location").value
+      const summary = document.getElementById("incident-summary").value
 
-        fetch("/report_incident", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ location, summary }),
+      fetch("/report_incident", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location, summary }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          showNotification(data.message, "success")
+          reportForm.reset()
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification("Incident reported successfully!", "success");
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showNotification("Error reporting incident. Try again!", "error");
-            }
+        .catch((error) => {
+          showNotification("Error reporting incident. Please try again.", "error")
+          console.error("Error:", error)
         })
-        .catch(() => showNotification("Server error. Please try later!", "error"));
-    });
+    })
+  }
 
-    // Handle Criminal Report Submission
-    document.getElementById("criminal-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const name = document.getElementById("criminal-name").value.trim();
-        const location = document.getElementById("criminal-location").value.trim();
+  // Report criminal form
+  const criminalForm = document.getElementById("criminal-form")
+  if (criminalForm) {
+    criminalForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const criminalName = document.getElementById("criminal-name").value
+      const location = document.getElementById("criminal-location").value
 
-        if (!name || !location) {
-            showNotification("Please fill in all fields!", "error");
-            return;
-        }
-
-        fetch("/report_criminal", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, location }),
+      fetch("/report_criminal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ criminal_name: criminalName, location: location }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          showNotification(data.message, "success")
+          criminalForm.reset()
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification("Criminal activity reported!", "success");
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showNotification("Error reporting criminal activity. Try again!", "error");
-            }
+        .catch((error) => {
+          showNotification("Error reporting criminal activity. Please try again.", "error")
+          console.error("Error:", error)
         })
-        .catch(() => showNotification("Server error. Please try later!", "error"));
-    });
+    })
+  }
+})
 
-    // Mark Incident as Covered
-    window.markAsCovered = function (incidentId) {
-        fetch(`/mark_as_covered/${incidentId}`, { method: "POST" })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification("Incident marked as covered!", "success");
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showNotification("Failed to mark as covered!", "error");
-            }
-        })
-        .catch(() => showNotification("Server error. Please try later!", "error"));
-    };
+// Mark incident as covered
+function markAsCovered(incidentId) {
+  fetch(`/mark_covered/${incidentId}`, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        const notification = document.getElementById("notification")
+        const notificationMessage = document.getElementById("notification-message")
 
-    // Notification System
-    function showNotification(message, type) {
-        const notification = document.getElementById("notification");
-        const messageElement = document.getElementById("notification-message");
+        notificationMessage.textContent = "Incident marked as covered!"
+        notification.className = "notification show success"
 
-        notification.className = `notification ${type}`;
-        messageElement.textContent = message;
-        notification.style.display = "flex";
-
+        // Auto hide after 3 seconds
         setTimeout(() => {
-            notification.style.display = "none";
-        }, 3000);
-    }
+          notification.classList.remove("show")
+          location.reload() // Reload the page to reflect changes
+        }, 3000)
+      } else {
+        const notification = document.getElementById("notification")
+        const notificationMessage = document.getElementById("notification-message")
 
-    // Close Notification
-    document.getElementById("notification-close").addEventListener("click", function () {
-        document.getElementById("notification").style.display = "none";
-    });
-});
+        notificationMessage.textContent = "Error marking incident as covered"
+        notification.className = "notification show error"
 
-  
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+          notification.classList.remove("show")
+        }, 3000)
+      }
+    })
+}
+
